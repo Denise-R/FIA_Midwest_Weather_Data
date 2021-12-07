@@ -134,10 +134,10 @@ years<-c("2016","2017","2018")
 states<-c("IA","IL","IN","MA","MD","ME","MI","MN","MO","NH","NJ","NY","OH","PA","VT","WI","WV")
 for(i in 1:length(states)){
   for(j in 1:length(years)){
-    Clim_year<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Clim_year/aet/TERRA_Clim_aet_",years[j],"/TERRA_Clim_aet_",states[i],"_",years[j],".csv",sep=""))
+    Clim_year<-read.csv(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Clim_year/aet/TERRA_Clim_aet_",years[j],"/TERRA_Clim_aet_",states[i],"_",years[j],".csv",sep=""))
     Clim_year<-Clim_year[,c(2,3,4,5)]
     
-    Uni_FIA_year<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Uni_FIA_year/Uni_FIA_",years[j],"/Uni_FIA_",states[i],"_",years[j],".csv",sep=""))
+    Uni_FIA_year<-read.csv(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Uni_FIA_year/Uni_FIA_",years[j],"/Uni_FIA_",states[i],"_",years[j],".csv",sep=""))
     Uni_FIA_year<-Uni_FIA_year[,c(2,3)]
     Unique_ID<-paste(rep("Unique ID",nrow(Uni_FIA_year)),c(1:nrow(Uni_FIA_year)),sep="_")
     Uni_FIA_year<-cbind(Uni_FIA_year,Unique_ID)
@@ -166,6 +166,7 @@ for(i in 1:length(states)){
 }
 
 #you have now found the closest station to each plot per state and per year. This chunck of code takes a very long time to run.
+#If this chunk of code continues to fail partway through a file, try changing the file permissions to be avalible to everyone with 'writer' access. 
 
 my.files.Clim_FIA_2016<-list.files(path="C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Uni_FIA_all_states_aet",pattern = "2016.csv")
 my.files.Clim_FIA_2017<-list.files(path="C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Uni_FIA_all_states_aet",pattern = "2017.csv")
