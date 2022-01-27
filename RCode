@@ -9,6 +9,10 @@ for(i in 1:length(states)){
   download.file(paste("https://apps.fs.usda.gov/fia/datamart/CSV/",states[i],"_TREE.csv",sep=""),paste("FIA_",states[i],"TREE.csv"),sep="")
 }
 
+#This section of code downloads the FIA_PLOT and FIA_TREE data for every state in FIA region 9 (https://apps.fs.usda.gov/fia/datamart/CSV/datamart_csv.html).
+#This data was then saved at the following directory: "C:/Users/Swenson/Documents/R/Denise/FIA_Project/FIA_Tree/FIA_ ",states[i]," TREE.csv"
+
+
 TERRA_Clim_Vars<-c("aet","def","PDSI","pet","ppt","q","soil","srad","swe","tmax","tmin","vap","vpd","ws")
 for(i in 1:length(TERRA_Clim_Vars)){
   download.file(paste("https://climate.northwestknowledge.net/TERRACLIMATE-DATA/TerraClimate_",TERRA_Clim_Vars[i],"_2016.nc",sep=""),paste("TERACLIM_",TERRA_Clim_Vars[i],"2016.nc"),sep="",mode = "wb")
@@ -22,64 +26,88 @@ for(i in 1:length(TERRA_Clim_Vars)){
   download.file(paste("https://climate.northwestknowledge.net/TERRACLIMATE-DATA/TerraClimate_",TERRA_Clim_Vars[i],"_2018.nc",sep=""),paste("TERACLIM_",TERRA_Clim_Vars[i],"2018.nc"),sep="",mode = "wb")
 }
 
+#This section of code downloads every variable fro each year from the Climatology site (https://climate.northwestknowledge.net/TERRACLIMATE/index_directDownloads.php).
+#This data was then saved at the following directory: "C:/Users/Swenson/Documents/R/Denise/TERRA_Clim/TERRA_Clim_",years[i],"/TERACLIM_ ",TERRA_Clim_Vars[k]," ",years[i],".nc"
+
+
+
 states<-c("CT","DE","IA","IL","IN","MA","MD","ME","MI","MN","MO","NH","NJ","NY","OH","PA","RI","VT","WI","WV")
 years<-c("2016","2017","2018")
 for (i in 1:length(states)) {
   for (j in 1:length(years)){
     FIA_Tree<- import(paste("C:/Users/Swenson/Documents/R/Denise/FIA_Project/FIA_Tree/FIA_ ",states[i]," TREE.csv",sep=""))
-    head(FIA_Tree)
-    is.data.frame(FIA_Tree)
-    
     FIA_Plot<- import(paste("C:/Users/Swenson/Documents/R/Denise/FIA_Project/FIA_PLOT/FIA_ ",states[i]," PLOT.csv",sep=""))
-    head(FIA_Plot)
-    is.data.frame(FIA_Plot)
     
     FIA_Plot2<-FIA_Plot[,c(1,9,12,13,14,20,21,22)]
     FIA_Tree2<-FIA_Tree[,c(2,5,8,15,16,17,18,20)]
     colnames(FIA_Plot2)[1]="CN/PLTCN match"
     colnames(FIA_Tree2)[1]="CN/PLTCN match"
-    FIA_Tree_Coord<-merge(FIA_Tree2,FIA_Plot2)
-    FIA_Tree_Coord_Year<-FIA_Tree_Coord[FIA_Tree_Coord$MEASYEAR==years[j],]
+    FIA_Tree_Plot<-merge(FIA_Tree2,FIA_Plot2)
+    FIA_Tree_Plot2<-FIA_Tree_Plot[FIA_Tree_Plot$MEASYEAR==years[j],]
     setwd(paste("C:/Users/Swenson/Documents/R/Denise/FIA_Tree_Coords/FIA_Trees_",years[j],"_Coord",sep=""))
-    write.csv(FIA_Tree_Coord_Year,paste("FIA_",states[i],"trees_",years[j],".csv",sep=""))
+    write.csv(FIA_Tree_Plot2,paste("FIA_",states[i],"trees_",years[j],".csv",sep=""))
   }
 }
-#Some of the files in the code above are too large to run in 32-bit RStudio. Code will run fine if RStudio is updated or in 64-bit R. 
+#This section of code takes the data we want from the FIA PLOT (CN, PLOT, MEASYEAR, MEASMON, MEASDAY, LAT, LON, ELEV) and FIA Tree (PLTCN, STATECD, PLOT, STATUSCD, SPCD, SPGRPCD, DIA, HT)
+#relates these two documents by CN and PLTCN, renames them as the same variable, combines the two documents, and then pulls out only trees sampled in 2016, 2017, 2018.
+#A key for each variable can be found here: (https://www.fia.fs.fed.us/library/database-documentation/historic/ver3/FIADB_user%20manual_v3-0_p2_7_10_08.pdf)
+#A key for each species code (SPCD) can be found here: (https://www.fia.fs.fed.us/program-features/urban/docs/Appendix%203a%20CORE%20Species%20List.pdf)
+
+
+
+
 pacman::p_load(pacman, caret, lars, tidyverse, rio)
-state_coord<-import("C:/Users/Swenson/Documents/R/Denise/test_data/State Coords - Sheet1.csv")
+
+state_coord<-import("C:/Users/Swenson/Documents/R/Denise/Midwest_states_data/split_state_coords.csv")
 years=c("2016","2017","2018")
+TERRA_Clim_Vars<-c("aet","def","PDSI","pet","ppt","q","soil","srad","swe","tmax","tmin","vap","vpd","ws")
+month<-c(1:12)
 
 library(reshape2)
 library(ncdf4)
 for(i in 1:length(years)){
   for(j in 1:nrow(state_coord)){
-    filename<-paste("C:/Users/Swenson/Documents/R/Denise/TERRA_Clim/TERRA_Clim_",years[i],"/TERACLIM_ aet ",years[i],".nc",sep="")
-    var<-nc_open(filename)
-    print(var)
-    lat<-ncvar_get(var, "lat")
-    lon<-ncvar_get(var, "lon")
-    time<-ncvar_get(var, "time")
-    time2<-as.Date(time, origin="1900-01-01", tz="UTC")
-    lat_rng<-c(state_coord[j,3],state_coord[j,4])
-    lon_rng<-c(state_coord[j,1],state_coord[j,2])
-    lat_ind<-which(lat>=lat_rng[1]&lat<=lat_rng[2])
-    lon_ind<-which(lon>=lon_rng[1]&lon<=lon_rng[2])
-    lat[lat_ind]
-    lon[lon_ind]
-    var_tm<-ncvar_get(var,"aet",start = c(lon_ind[1],lat_ind[1],5),count = c(length(lon_ind),length(lat_ind),1))
-    dim(var_tm)
-    var_tm2<-var_tm
-    row.names(var_tm2)<-lon[lon_ind]
-    colnames(var_tm2)<-lat[lat_ind]
-    var_tmmelt<-melt(var_tm2,id.vars=lat[lat_ind])
-    colnames(var_tmmelt)<-c("lon","lat","var")
-    setwd(paste("C:/Users/Swenson/Documents/R/Denise/TERRA_Clim/TERRA_Clim_Lat_Lon_Var/TERRA_Clim_Var_",years[i],"",sep=""))
-    write.csv(var_tmmelt, paste("Var_",state_coord[j,5],"lat_lon_",years[i],".csv",sep=""))
+    for(k in 1:length(TERRA_Clim_Vars)){
+      for(y in 1:length(month)){
+        filename<-paste("C:/Users/Swenson/Documents/R/Denise/TERRA_Clim/TERRA_Clim_",years[i],"/TERACLIM_ ",TERRA_Clim_Vars[k]," ",years[i],".nc",sep="")
+        var<-nc_open(filename) 
+        lat<-ncvar_get(var, "lat")
+        lon<-ncvar_get(var, "lon")
+        time<-ncvar_get(var, "time")
+        time2<-as.Date(time, origin="1900-01-01", tz="UTC")
+        lat_rng<-c(state_coord[j,3],state_coord[j,4])
+        lon_rng<-c(state_coord[j,1],state_coord[j,2])
+        lat_ind<-which(lat>=lat_rng[1]&lat<=lat_rng[2])
+        lon_ind<-which(lon>=lon_rng[1]&lon<=lon_rng[2])
+        lat[lat_ind]
+        lon[lon_ind]
+        var_tm<-ncvar_get(var,paste("",TERRA_Clim_Vars[k],"",sep=""),start = c(lon_ind[1],lat_ind[1],month[y]),count = c(length(lon_ind),length(lat_ind),1))
+        dim(var_tm)
+        var_tm2<-var_tm
+        row.names(var_tm2)<-lon[lon_ind]
+        colnames(var_tm2)<-lat[lat_ind]
+        var_tmmelt<-melt(var_tm2,id.vars=lat[lat_ind])
+        colnames(var_tmmelt)<-c("lon","lat",paste("",TERRA_Clim_Vars[k],"",sep=""))
+        var_month<-matrix(paste("",month[y],"",sep=""),ncol=1,nrow=nrow(var_tmmelt))
+        var_tmmelt<-cbind(var_tmmelt,var_month)
+        setwd(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Clim_year/Split_var_original/",month[y],"/",TERRA_Clim_Vars[k],"/",years[i],"",sep=""))
+        write.csv(var_tmmelt, paste("",TERRA_Clim_Vars[k],"_",state_coord[j,5],"lat_lon_",years[i],".csv",sep=""))
+      }
+    }
   }
 }
 
-
-#Now created a clim file specific to each state per year
+#To turn the TERRA clim ncdf files into csv files, the file name is entered and the function ncvar_open is used to view the types of data contained in the files (creates a connection to the file without opening it)
+#print (var) is used to see the number of variables in each file (1) and the dimensions of that variable (lat, Lon, time). 
+#The size of LAT is 4320, LON is 8640, and Size is 12.Because these are pretty big, we need to break them down into smaller sections.
+#ncvar_get is used to request the LON, LAT, and time data for where and when the data was recorded.
+#Because time is recorded as days since 1900-01-01, it needs to be calibrated to be in a more easily understandable unit. To do this as.date is used to specify the origin and time zone.
+#Next, the LAT/LON dimensions are specified by the state sections LAT/LON.
+#Next, a time series for each state section is pulled out for each month.
+#Next, the rows and col names are changed
+#The function melt() is used to create a data frame of LAT, LON, and each corresponding var is a more understandable and useful way
+#Finally, a column specifying which month each variable was pulled from is added
+#Overall, split_state is download of each ncdf file. The final file includes Lon, Lat, var, and month data was collected (4 cols). 
 
 pacman::p_load(pacman, caret, lars, tidyverse, rio)
 years<-c("2016","2017","2018")
@@ -88,10 +116,10 @@ states<-c("CT","DE","IA","IL","IN","MA","MD","ME","MI","MN","MO","NH","NJ","NY",
 for(i in 1:length(states)){
   for(j in 1:length(years)){
     
-    FIA_Tree_Coord_year<-import(paste("C:/Users/Swenson/Documents/R/Denise/FIA_Tree_Coords/FIA_Trees_",years[j],"_Coord/FIA_",states[i],"trees_",years[j],".csv",sep=""))
-    as.matrix(FIA_Tree_Coord_year)
+    FIA_Tree_Plot2<-import(paste("C:/Users/Swenson/Documents/R/Denise/FIA_Tree_Coords/FIA_Trees_",years[j],"_Coord/FIA_",states[i],"trees_",years[j],".csv",sep=""))
+    as.matrix(FIA_Tree_Plot2)
     
-    FIA_year<-as.matrix(FIA_Tree_Coord_year[,c(14,13)])
+    FIA_year<-as.matrix(FIA_Tree_Plot2[,c(14,13)])
     FIA_year<-as.data.frame(FIA_year)
     Uni_FIA_year<-unique(FIA_year[,c("LON","LAT")],)
     as.character(Uni_FIA_year$LAT)
@@ -103,41 +131,50 @@ for(i in 1:length(states)){
   }
 }
 
+#This section of code looks at the every FIA file created above (File combining data from FIA PLOT and FIA TREE) and only looks at one
+#tree in each plot because the coordinates are only recorded per plot. 
 
-states<-c("CT","DE","IA","IL","IN","MA","MD","ME","MI","MN","MO","NH","NJ","NY","OH","PA","RI","VT","WI","WV")
+
+
+Clim_states<-c("CT","DE","RI","MA","MD_1","MD_2","IA_1","IA_2","IA_3","IA_4","IA_5","IA_6","IA_7","IA_8","IA_9","IA_10","IA_11","IA_12","IA_13","IA_14","IA_15","IA_16","IN_1","IN_2","IN_3","IN_4","IN_5","IN_6","IN_7","IN_8","IN_9","IN_10","IN_11","IN_12","IN_13","IN_14","IN_15","IN_16","IL_1","IL_2","IL_3","IL_4","IL_5","IL_6","IL_7","IL_8","IL_9","IL_10","IL_11","IL_12","IL_13","IL_14","IL_15","IL_16","ME_1","ME_2","ME_3","ME_4","ME_5","ME_6","ME_7","ME_8","ME_9","ME_10","ME_11","ME_12","ME_13","ME_14","ME_15","ME_16","ME_17","ME_18","ME_19","ME_20","ME_21","ME_22","ME_23","ME_24","ME_25","ME_26","ME_27","ME_28","ME_29","ME_30","ME_31","ME_32","NH_1","NH_2","NH_3","NH_4","NH_5","NH_6","NH_7","NH_8","NH_9","NH_10","NH_11","NH_12","NH_13","NH_14","NH_15","NH_16","NJ_1","NJ_2","NJ_3","NJ_4","NJ_5","NJ_6","NJ_7","NJ_8","NJ_9","NJ_10","NJ_11","NJ_12","NJ_13","NJ_14","NJ_15","NJ_16","OH_1","OH_2","OH_3","OH_4","OH_5","OH_6","OH_7","OH_8","OH_9","OH_10","OH_11","OH_12","OH_13","OH_14","OH_15","OH_16","PA_1","PA_2","PA_3","PA_4","PA_5","PA_6","PA_7","PA_8","PA_9","PA_10","PA_11","PA_12","PA_13","PA_14","PA_15","PA_16","VT_1","VT_2","VT_3","VT_4","VT_5","VT_6","VT_7","VT_8","VT_9","VT_10","VT_11","VT_12","VT_13","VT_14","VT_15","VT_16","WV_1","WV_2","WV_3","WV_4","WV_5","WV_6","WV_7","WV_8","WV_9","WV_10","WV_11","WV_12","WV_13","WV_14","WV_15","WV_16","NY_1","NY_2","NY_3","NY_4","NY_5","NY_6","NY_7","NY_8","NY_9","NY_10","NY_11","NY_12","NY_13","NY_14","NY_15","NY_16","MO_1","MO_2","MO_3","MO_4","MO_5","MO_6","MO_7","MO_8","MO_9","MO_10","MO_11","MO_12","MO_13","MO_14","MO_15","MO_16","MI_1","MI_2","MI_3","MI_4","MI_5","MI_6","MI_7","MI_8","MI_9","MI_10","MI_11","MI_12","MI_13","MI_14","MI_15","MI_16","MI_17","MI_18","MI_19","MI_20","MI_21","MI_22","MI_23","MI_24","MI_25","MI_26","MI_27","MI_28","MI_29","MI_30","MI_31","MI_32","WI_1","WI_2","WI_3","WI_4","WI_5","WI_6","WI_7","WI_8","WI_9","WI_10","WI_11","WI_12","WI_13","WI_14","WI_15","WI_16","WI_17","WI_18","WI_19","WI_20","WI_21","WI_22","WI_23","WI_24","WI_25","WI_26","WI_27","WI_28","WI_29","WI_30","WI_31","WI_32","WI_33","WI_34","WI_35","WI_36","WI_37","WI_38","WI_39","WI_40","WI_41","WI_42","WI_43","WI_44","WI_45","WI_46","WI_47","WI_48","WI_49","WI_50","MN_1","MN_2","MN_3","MN_4","MN_5","MN_6","MN_7","MN_8","MN_9","MN_10","MN_11","MN_12","MN_13","MN_14","MN_15","MN_16","MN_17","MN_18","MN_19","MN_20","MN_21","MN_22","MN_23","MN_24","MN_25","MN_26","MN_27","MN_28","MN_29","MN_30","MN_31","MN_32","MN_33","MN_34","MN_35","MN_36","MN_37","MN_38","MN_39","MN_40","MN_41","MN_42","MN_43","MN_44","MN_45","MN_46","MN_47","MN_48","MN_49","MN_50")
 years<-c("2016","2017","2018")
-for(i in 1:length(states)){
+TERRA_Clim_Vars<-c("aet","def","PDSI","pet","ppt","q","soil","srad","swe","tmax","tmin","vap","vpd","ws")
+month<-c(1:12)
+
+for(i in 1:length(Clim_states)){
   for(j in 1:length(years)){
-    
-    var_year<-import(paste("C:/Users/Swenson/Documents/R/Denise/TERRA_Clim/TERRA_Clim_Lat_Lon_Var/TERRA_Clim_Var_",years[j],"/Var_",states[i],"lat_lon_",years[j],".csv",sep=""))
-    colnames(var_year)<-c("V1","LON","LAT","aet")
-    as.matrix(var_year)
-    Clim_year<-as.matrix(var_year[,c(2,3,4)])
-    Clim_year<-as.data.frame(Clim_year)
-    station<-paste(rep("station",nrow(Clim_year)),c(1:nrow(Clim_year)),sep="_")
-    Clim_year<-cbind(Clim_year,station)
-    Clim_year<-na.omit(Clim_year)
-    as.character(Clim_year$LON)
-    as.character(Clim_year$LAT)
-    as.character(Clim_year$station)
-    setwd(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Clim_year/aet/TERRA_Clim_aet_",years[j],"",sep=""))
-    write.csv(Clim_year,paste("TERRA_Clim_aet_",states[i],"_",years[j],".csv",sep=""))
+    for(y in 1:length(month)){
+      for(k in 1:length(TERRA_Clim_Vars)){
+        var_year<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Clim_year/Split_var_original/",month[y],"/",TERRA_Clim_Vars[k],"/",years[j],"/",TERRA_Clim_Vars[k],"_",Clim_states[i],"lat_lon_",years[j],".csv",sep=""))
+        colnames(var_year)<-c("V1","LON","LAT",paste("",TERRA_Clim_Vars[k],"",sep=""),"var_month")
+        as.matrix(var_year)
+        Clim_year<-as.matrix(var_year[,c(2:5)])
+        Clim_year<-as.data.frame(Clim_year)
+        station<-paste(rep("station",nrow(Clim_year)),c(1:nrow(Clim_year)),sep="_")
+        Clim_year<-cbind(Clim_year,station)
+        Clim_year<-na.omit(Clim_year)
+        as.character(Clim_year$LON)
+        as.character(Clim_year$LAT)
+        as.character(Clim_year$station)
+        setwd(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Clim_year/Split_var_reduced/",month[y],"/All_var/",years[j],"",sep=""))
+        write.csv(Clim_year,paste("",TERRA_Clim_Vars[k],"_",Clim_states[i],"_",years[j],".csv",sep=""))
+      }
+    }
   }
 }
-
-#you have now changed the appearence/size of the TERRA Clim data for the var aet for each year and state. 
-#This can now be used to find the closest station to the FIA plots.
-
+#Took each split_state ncdf var and added a col for station_ID and removed the V1 col.
 
 pacman::p_load(pacman, caret, lars, tidyverse, rio)
 years<-c("2016","2017","2018")
-states<-c("IA","IL","IN","MA","MD","ME","MI","MN","MO","NH","NJ","NY","OH","PA","VT","WI","WV")
-for(i in 1:length(states)){
+Clim_states<-c("CT","DE","RI","MA","MD_1","MD_2","IA_1","IA_2","IA_3","IA_4","IA_5","IA_6","IA_7","IA_8","IA_9","IA_10","IA_11","IA_12","IA_13","IA_14","IA_15","IA_16","IN_1","IN_2","IN_3","IN_4","IN_5","IN_6","IN_7","IN_8","IN_9","IN_10","IN_11","IN_12","IN_13","IN_14","IN_15","IN_16","IL_1","IL_2","IL_3","IL_4","IL_5","IL_6","IL_7","IL_8","IL_9","IL_10","IL_11","IL_12","IL_13","IL_14","IL_15","IL_16","ME_1","ME_2","ME_3","ME_4","ME_5","ME_6","ME_7","ME_8","ME_9","ME_10","ME_11","ME_12","ME_13","ME_14","ME_15","ME_16","ME_17","ME_18","ME_19","ME_20","ME_21","ME_22","ME_23","ME_24","ME_25","ME_26","ME_27","ME_28","ME_29","ME_30","ME_31","ME_32","NH_1","NH_2","NH_3","NH_4","NH_5","NH_6","NH_7","NH_8","NH_9","NH_10","NH_11","NH_12","NH_13","NH_14","NH_15","NH_16","NJ_1","NJ_2","NJ_3","NJ_4","NJ_5","NJ_6","NJ_7","NJ_8","NJ_9","NJ_10","NJ_11","NJ_12","NJ_13","NJ_14","NJ_15","NJ_16","OH_1","OH_2","OH_3","OH_4","OH_5","OH_6","OH_7","OH_8","OH_9","OH_10","OH_11","OH_12","OH_13","OH_14","OH_15","OH_16","PA_1","PA_2","PA_3","PA_4","PA_5","PA_6","PA_7","PA_8","PA_9","PA_10","PA_11","PA_12","PA_13","PA_14","PA_15","PA_16","VT_1","VT_2","VT_3","VT_4","VT_5","VT_6","VT_7","VT_8","VT_9","VT_10","VT_11","VT_12","VT_13","VT_14","VT_15","VT_16","WV_1","WV_2","WV_3","WV_4","WV_5","WV_6","WV_7","WV_8","WV_9","WV_10","WV_11","WV_12","WV_13","WV_14","WV_15","WV_16","NY_1","NY_2","NY_3","NY_4","NY_5","NY_6","NY_7","NY_8","NY_9","NY_10","NY_11","NY_12","NY_13","NY_14","NY_15","NY_16","MO_1","MO_2","MO_3","MO_4","MO_5","MO_6","MO_7","MO_8","MO_9","MO_10","MO_11","MO_12","MO_13","MO_14","MO_15","MO_16","MI_1","MI_2","MI_3","MI_4","MI_5","MI_6","MI_7","MI_8","MI_9","MI_10","MI_11","MI_12","MI_13","MI_14","MI_15","MI_16","MI_17","MI_18","MI_19","MI_20","MI_21","MI_22","MI_23","MI_24","MI_25","MI_26","MI_27","MI_28","MI_29","MI_30","MI_31","MI_32","WI_1","WI_2","WI_3","WI_4","WI_5","WI_6","WI_7","WI_8","WI_9","WI_10","WI_11","WI_12","WI_13","WI_14","WI_15","WI_16","WI_17","WI_18","WI_19","WI_20","WI_21","WI_22","WI_23","WI_24","WI_25","WI_26","WI_27","WI_28","WI_29","WI_30","WI_31","WI_32","WI_33","WI_34","WI_35","WI_36","WI_37","WI_38","WI_39","WI_40","WI_41","WI_42","WI_43","WI_44","WI_45","WI_46","WI_47","WI_48","WI_49","WI_50","MN_1","MN_2","MN_3","MN_4","MN_5","MN_6","MN_7","MN_8","MN_9","MN_10","MN_11","MN_12","MN_13","MN_14","MN_15","MN_16","MN_17","MN_18","MN_19","MN_20","MN_21","MN_22","MN_23","MN_24","MN_25","MN_26","MN_27","MN_28","MN_29","MN_30","MN_31","MN_32","MN_33","MN_34","MN_35","MN_36","MN_37","MN_38","MN_39","MN_40","MN_41","MN_42","MN_43","MN_44","MN_45","MN_46","MN_47","MN_48","MN_49","MN_50")
+
+
+for(i in 1:length(Clim_states)){
   for(j in 1:length(years)){
-    Clim_year<-read.csv(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Clim_year/aet/TERRA_Clim_aet_",years[j],"/TERRA_Clim_aet_",states[i],"_",years[j],".csv",sep=""))
-    Clim_year<-Clim_year[,c(2,3,4,5)]
+    Clim_year<-read.csv(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Clim_year/Split_var_reduced/5/All_var/",years[j],"/aet_",Clim_states[i],"_",years[j],".csv",sep=""))
+    Clim_year<-Clim_year[,c(2,3,4,6)]
     
-    Uni_FIA_year<-read.csv(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Uni_FIA_year/Uni_FIA_",years[j],"/Uni_FIA_",states[i],"_",years[j],".csv",sep=""))
+    Uni_FIA_year<-read.csv(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Uni_FIA_year/Uni_FIA_",years[j],"/Uni_FIA_",gsub("_.*","",Clim_states[i]),"_",years[j],".csv",sep=""))
     Uni_FIA_year<-Uni_FIA_year[,c(2,3)]
     Unique_ID<-paste(rep("Unique ID",nrow(Uni_FIA_year)),c(1:nrow(Uni_FIA_year)),sep="_")
     Uni_FIA_year<-cbind(Uni_FIA_year,Unique_ID)
@@ -158,52 +195,220 @@ for(i in 1:length(states)){
         Uni_FIA_year_var<-cbind(Uni_FIA_year,var2)
         Clim_year_var<-Clim_year[,c(3,4)]
         Uni_FIA_year_var<-merge(Uni_FIA_year_var,Clim_year_var,by="station")
-        setwd("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Uni_FIA_all_states_aet")
-        write.csv(Uni_FIA_year_var,paste("Uni_FIA_",states[i],"_aet_",years[j],".csv",sep=""))
+        setwd(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Uni_FIA_all_states_aet_v2/",years[j],"",sep=""))
+        write.csv(Uni_FIA_year_var,paste("Uni_FIA_",Clim_states[i],"_aet_",years[j],"_v2.csv",sep=""))
       }
     }
   }
 }
+#Because the stations are the same for each variable per year, I chose to focus on the variable aet in the month of may. 
+#The reduced TERRA Clim files for each split state section for year in the month of May is imported and the V1/X variable is removed.
+#The FIA state LAT LON files are downloaded for each year and the V1/X vaiable is removed.
+#Next, a unique ID for each plot location is added to UNI_FIA_year
+#the distance between each FIA state vaiable and each TERRA clim state section is thrown into var 1 and each row is labled by the respective station ID
+#Next the minimum distance between each FIA unique ID and each TERRA clim station is recorded in var2 with the respective station ID.
+#Next, the rows of var2 are changed to refect each Unique ID they relate to. The cols of var2 are renamed. 
+#Next var2 and Uni_FIA_year are combined together to show FIA plot LAT/LON with the closest station and distance to station.
+#Finally, the variable aet is added.
+#You have now determined which station is closest based off the May aet split state TERRA files :)
 
-#you have now found the closest station to each plot per state and per year. This chunck of code takes a very long time to run.
-#If this chunk of code continues to fail partway through a file, try changing the file permissions to be avalible to everyone with 'writer' access. 
 
-my.files.Clim_FIA_2016<-list.files(path="C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Uni_FIA_all_states_aet",pattern = "2016.csv")
-my.files.Clim_FIA_2017<-list.files(path="C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Uni_FIA_all_states_aet",pattern = "2017.csv")
-my.files.Clim_FIA_2018<-list.files(path="C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Uni_FIA_all_states_aet",pattern = "2018.csv")
-
-#You have now created a list of all the files to be combined into one csv. This will be helpful for the next section of code...
-
-datalist<-list()
-for(i in 1:length(my.files.Clim_FIA_2016)){
-  Clim_FIA_2016<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Uni_FIA_all_states_aet/",my.files.Clim_FIA_2016[i],"",sep=""))
-  datalist[[i]]<-Clim_FIA_2016
+years<-c("2016","2017")
+Clim_states<-c("RI","MD_1","MD_2")
+#years<-c("2016", "2017","2018")
+#Clim_states<-c("CT","DE","RI","MA","MD_1","MD_2","IA_1","IA_2","IA_3","IA_4","IA_5","IA_6","IA_7","IA_8","IA_9","IA_10","IA_11","IA_12","IA_13","IA_14","IA_15","IA_16","IN_1","IN_2","IN_3","IN_4","IN_5","IN_6","IN_7","IN_8","IN_9","IN_10","IN_11","IN_12","IN_13","IN_14","IN_15","IN_16","IL_1","IL_2","IL_3","IL_4","IL_5","IL_6","IL_7","IL_8","IL_9","IL_10","IL_11","IL_12","IL_13","IL_14","IL_15","IL_16","ME_1","ME_2","ME_3","ME_4","ME_5","ME_6","ME_7","ME_8","ME_9","ME_10","ME_11","ME_12","ME_13","ME_14","ME_15","ME_16","ME_17","ME_18","ME_19","ME_20","ME_21","ME_22","ME_23","ME_24","ME_25","ME_26","ME_27","ME_28","ME_29","ME_30","ME_31","ME_32","NH_1","NH_2","NH_3","NH_4","NH_5","NH_6","NH_7","NH_8","NH_9","NH_10","NH_11","NH_12","NH_13","NH_14","NH_15","NH_16","NJ_1","NJ_2","NJ_3","NJ_4","NJ_5","NJ_6","NJ_7","NJ_8","NJ_9","NJ_10","NJ_11","NJ_12","NJ_13","NJ_14","NJ_15","NJ_16","OH_1","OH_2","OH_3","OH_4","OH_5","OH_6","OH_7","OH_8","OH_9","OH_10","OH_11","OH_12","OH_13","OH_14","OH_15","OH_16","PA_1","PA_2","PA_3","PA_4","PA_5","PA_6","PA_7","PA_8","PA_9","PA_10","PA_11","PA_12","PA_13","PA_14","PA_15","PA_16","VT_1","VT_2","VT_3","VT_4","VT_5","VT_6","VT_7","VT_8","VT_9","VT_10","VT_11","VT_12","VT_13","VT_14","VT_15","VT_16","WV_1","WV_2","WV_3","WV_4","WV_5","WV_6","WV_7","WV_8","WV_9","WV_10","WV_11","WV_12","WV_13","WV_14","WV_15","WV_16","NY_1","NY_2","NY_3","NY_4","NY_5","NY_6","NY_7","NY_8","NY_9","NY_10","NY_11","NY_12","NY_13","NY_14","NY_15","NY_16","MO_1","MO_2","MO_3","MO_4","MO_5","MO_6","MO_7","MO_8","MO_9","MO_10","MO_11","MO_12","MO_13","MO_14","MO_15","MO_16","MI_1","MI_2","MI_3","MI_4","MI_5","MI_6","MI_7","MI_8","MI_9","MI_10","MI_11","MI_12","MI_13","MI_14","MI_15","MI_16","MI_17","MI_18","MI_19","MI_20","MI_21","MI_22","MI_23","MI_24","MI_25","MI_26","MI_27","MI_28","MI_29","MI_30","MI_31","MI_32","WI_1","WI_2","WI_3","WI_4","WI_5","WI_6","WI_7","WI_8","WI_9","WI_10","WI_11","WI_12","WI_13","WI_14","WI_15","WI_16","WI_17","WI_18","WI_19","WI_20","WI_21","WI_22","WI_23","WI_24","WI_25","WI_26","WI_27","WI_28","WI_29","WI_30","WI_31","WI_32","WI_33","WI_34","WI_35","WI_36","WI_37","WI_38","WI_39","WI_40","WI_41","WI_42","WI_43","WI_44","WI_45","WI_46","WI_47","WI_48","WI_49","WI_50","MN_1","MN_2","MN_3","MN_4","MN_5","MN_6","MN_7","MN_8","MN_9","MN_10","MN_11","MN_12","MN_13","MN_14","MN_15","MN_16","MN_17","MN_18","MN_19","MN_20","MN_21","MN_22","MN_23","MN_24","MN_25","MN_26","MN_27","MN_28","MN_29","MN_30","MN_31","MN_32","MN_33","MN_34","MN_35","MN_36","MN_37","MN_38","MN_39","MN_40","MN_41","MN_42","MN_43","MN_44","MN_45","MN_46","MN_47","MN_48","MN_49","MN_50")
+for(i in 1:length(years)){
+  for(j in 1:length(Clim_states)){
+    Uni_FIA_Clim<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Uni_FIA_all_states_aet_v2/",years[i],"/Uni_FIA_",Clim_states[j],"_aet_",years[i],"_v2.csv",sep=""))
+    aet<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Clim_year/Split_var_reduced/5/All_var/",years[i],"/aet_",Clim_states[j],"_",years[i],".csv",sep=""))
+    colnames(aet)<-c("V1","station_LON","station_LAT","aet","var_month","station")
+    var<-merge(Uni_FIA_Clim,aet, by=c("station","aet"),na.omit=T)
+    var<-var[,c(1,4:7,9:10)]
+    setwd(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_state_sections/aet_only/",years[i],"",sep=""))
+    write.csv(var, paste("Matched_aet",Clim_states[j],"_",years[i],".csv",sep=""))
+  }
 }
-Clim_FIA_all_state_2016<-do.call(rbind,datalist)
-Clim_FIA_all_state_2016<-as.matrix(Clim_FIA_all_state_2016[,c(2,3)])
-write.csv(Clim_FIA_all_state_2016,"C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Uni_FIA_all_states_aet/All_state_FIA_clim_year/All_state_FIA_clim_2016.csv")
-
-#You have now created a CSV of each FIA and aet clim var per year
+#Took aet from May(same month we used to find the closest station;var is arbitrary, chose aet because it was the first alphabetically) and merged it to the closest station (Uni_FIA_clim) 
+#to get rid of the extra stations,V1, aet,var_month (just adding station_LAt/LON).
 
 
-year=c("2016","2017","2018")
-var=c("3","4","5")
-for(i in 1:length(year)){
-  for(j in 1:length(var)){
-    Clim_var<-import(paste("C:/Users/Swenson/Documents/R/Denise/TERRA_Clim/TERRA_Clim_Lat_Lon_Var/TERRA_Clim_Var_",years[i],"/Midwest_",var[j],"_lat_lon_",years[i],".csv",sep=""))
-    Clim_year<-import(paste("C:/Users/Swenson/Documents/R/Denise/TERRA_Clim/TERRA_Clim_Lat_Lon_Var/TERRA_Clim_Var_",years[i],"/Midwest_aet_lat_lon_",years[i],".csv",sep=""))
-    station<-paste(rep("station",nrow(Clim_year)),c(1:nrow(Clim_year)),sep="_")
-    Clim_year<-cbind(Clim_year,station)
-    as.character(Clim_year$station)
-    Clim_year<-Clim_year[,c(1,2,4)]
-    Clim_var<-merge(Clim_var,Clim_year,by=c("LON","LAT"))
-    Clim_var<-Clim_var[,c(3,4)]
-    Uni_FIA_year_var<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Uni_FIA_all_states_aet/All_state_FIA_clim_year/All_state_FIA_clim_",years[i],".csv",sep=""))
-    Uni_FIA_year_var<-merge(Uni_FIA_year_var,Clim_var,by="station")
-    setwd("C:/Users/Swenson/Documents/R/Denise/FIA_Clim_coords_var")
-    write.csv(Uni_FIA_year_var,paste("FIA_Clim_coords_May_",years[j],".csv",sep=""))
+
+years<-c("2016","2017","2018")
+Clim_states<-c("CT","DE","RI","MA","MD_1","MD_2","IA_1","IA_2","IA_3","IA_4","IA_5","IA_6","IA_7","IA_8","IA_9","IA_10","IA_11","IA_12","IA_13","IA_14","IA_15","IA_16","IN_1","IN_2","IN_3","IN_4","IN_5","IN_6","IN_7","IN_8","IN_9","IN_10","IN_11","IN_12","IN_13","IN_14","IN_15","IN_16","IL_1","IL_2","IL_3","IL_4","IL_5","IL_6","IL_7","IL_8","IL_9","IL_10","IL_11","IL_12","IL_13","IL_14","IL_15","IL_16","ME_1","ME_2","ME_3","ME_4","ME_5","ME_6","ME_7","ME_8","ME_9","ME_10","ME_11","ME_12","ME_13","ME_14","ME_15","ME_16","ME_17","ME_18","ME_19","ME_20","ME_21","ME_22","ME_23","ME_24","ME_25","ME_26","ME_27","ME_28","ME_29","ME_30","ME_31","ME_32","NH_1","NH_2","NH_3","NH_4","NH_5","NH_6","NH_7","NH_8","NH_9","NH_10","NH_11","NH_12","NH_13","NH_14","NH_15","NH_16","NJ_1","NJ_2","NJ_3","NJ_4","NJ_5","NJ_6","NJ_7","NJ_8","NJ_9","NJ_10","NJ_11","NJ_12","NJ_13","NJ_14","NJ_15","NJ_16","OH_1","OH_2","OH_3","OH_4","OH_5","OH_6","OH_7","OH_8","OH_9","OH_10","OH_11","OH_12","OH_13","OH_14","OH_15","OH_16","PA_1","PA_2","PA_3","PA_4","PA_5","PA_6","PA_7","PA_8","PA_9","PA_10","PA_11","PA_12","PA_13","PA_14","PA_15","PA_16","VT_1","VT_2","VT_3","VT_4","VT_5","VT_6","VT_7","VT_8","VT_9","VT_10","VT_11","VT_12","VT_13","VT_14","VT_15","VT_16","WV_1","WV_2","WV_3","WV_4","WV_5","WV_6","WV_7","WV_8","WV_9","WV_10","WV_11","WV_12","WV_13","WV_14","WV_15","WV_16","NY_1","NY_2","NY_3","NY_4","NY_5","NY_6","NY_7","NY_8","NY_9","NY_10","NY_11","NY_12","NY_13","NY_14","NY_15","NY_16","MO_1","MO_2","MO_3","MO_4","MO_5","MO_6","MO_7","MO_8","MO_9","MO_10","MO_11","MO_12","MO_13","MO_14","MO_15","MO_16","MI_1","MI_2","MI_3","MI_4","MI_5","MI_6","MI_7","MI_8","MI_9","MI_10","MI_11","MI_12","MI_13","MI_14","MI_15","MI_16","MI_17","MI_18","MI_19","MI_20","MI_21","MI_22","MI_23","MI_24","MI_25","MI_26","MI_27","MI_28","MI_29","MI_30","MI_31","MI_32","WI_1","WI_2","WI_3","WI_4","WI_5","WI_6","WI_7","WI_8","WI_9","WI_10","WI_11","WI_12","WI_13","WI_14","WI_15","WI_16","WI_17","WI_18","WI_19","WI_20","WI_21","WI_22","WI_23","WI_24","WI_25","WI_26","WI_27","WI_28","WI_29","WI_30","WI_31","WI_32","WI_33","WI_34","WI_35","WI_36","WI_37","WI_38","WI_39","WI_40","WI_41","WI_42","WI_43","WI_44","WI_45","WI_46","WI_47","WI_48","WI_49","WI_50","MN_1","MN_2","MN_3","MN_4","MN_5","MN_6","MN_7","MN_8","MN_9","MN_10","MN_11","MN_12","MN_13","MN_14","MN_15","MN_16","MN_17","MN_18","MN_19","MN_20","MN_21","MN_22","MN_23","MN_24","MN_25","MN_26","MN_27","MN_28","MN_29","MN_30","MN_31","MN_32","MN_33","MN_34","MN_35","MN_36","MN_37","MN_38","MN_39","MN_40","MN_41","MN_42","MN_43","MN_44","MN_45","MN_46","MN_47","MN_48","MN_49","MN_50")
+TERRA_Clim_Vars<-c("aet","def","PDSI","pet","ppt","q","soil","srad","swe","tmax","tmin","vap","vpd","ws")
+month<-c(1:12)
+
+for(i in 1:length(years)){
+  for(j in 1:length(Clim_states)){
+    for(y in 1:length(month)){
+      var_list<-list.files(path=paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Clim_year/Split_var_reduced/",month[y],"/All_var/",years[i],"",sep=""),
+                           pattern=paste("_",Clim_states[j],"_",sep=""))
+      datalist0<-list()
+      for(k in 1:length(var_list)){
+        var0<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Clim_var/Clim_year/Split_var_reduced/",month[y],"/All_var/",years[i],"/",var_list[k],"",sep=""))
+        datalist0[[k]]<-var0
+      }
+      All_vars<-Reduce(function(x, y) merge(x, y), datalist0)
+      All_vars2<-All_vars[,c(2:4,6:19)]
+      colnames(All_vars2)[1]<-"station_LON"
+      colnames(All_vars2)[2]<-"station_LAT"
+      var<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_state_sections/aet_only/",years[i],"/Matched_aet",Clim_states[j],"_",years[i],".csv",sep=""))
+      var<-var[,c(2:8)]
+      All_vars3<-merge(var,All_vars2,by=c("station_LON","station_LAT"))
+      setwd(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_state_sections/All_vars/",month[y],"/",years[i],"",sep=""))
+      write.csv(All_vars3,paste("All_var_matched_",Clim_states[j],"_",years[i],".csv",sep=""))
+    }
   }
 }
 
-#code to add other vars after determining the closest station
+#made a list of every var/state section/year (14 docs per each list), opened each of thoses docs and put the data into datalist0
+#Took datalist0 and merged all the data (used reduced function to do this one at a time). All_vars contains all vars in one month 
+#for one state section per year. All_vars_2 removes V1 and station and changes the names of LON, LAT to match var(file that matched 
+#may aet per state section per year to the UNI_FIA_clim tree data.
 
+
+
+
+
+years<-c("2016","2017","2018")
+states<-c("CT","DE","IA","IL","IN","MA","MD","ME","MI","MN","MO","NH","NJ","NY","OH","PA","RI","VT","WI","WV")
+month<-c(1:12)
+for(i in 1:length(years)){
+  for(j in 1:length(states)){
+    for(y in 1:length(month)){
+      var1<-list.files(path=paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_state_sections/All_vars/",month[y],"/",years[i],"",sep=""),
+                       pattern=paste("All_var_matched_",states[j],"",sep=""))
+      datalist<-list()
+      for(k in 1:length(var1)){
+        var2<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_state_sections/All_vars/",month[y],"/",years[i],"/",var1[k],"",sep=""))
+        datalist[[k]]<-var2
+      }
+      var3<-do.call(bind_rows,datalist)
+      num<-1:nrow(var2)
+      datalist2<-list()
+      for(l in 1:length(num)){
+        min_val<-min(var3[var3$Unique_ID==paste("Unique ID_",num[l],sep=""),]$Dist)
+        datalist2[[l]]<-var3[grep(min_val,var3$Dist),]
+      }
+      var4<-do.call(bind_rows,datalist2)
+      FIA_Tree_Coord_Year<-import(paste("C:/Users/Swenson/Documents/R/Denise/FIA_Tree_Coords/FIA_Trees_",years[i],"_Coord/FIA_",states[j],"trees_",years[i],".csv",sep=""))
+      FIA_full<-merge(FIA_Tree_Coord_Year,var4,by=c("LAT","LON"))
+      var5<-FIA_full[,c(1:2,4:15,17:36)]
+      setwd(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_state/",month[y],"",sep=""))
+      write.csv(var5,paste("All_var_matched_",states[j],"_",years[i],".csv",sep=""))
+    }
+  }
+}
+#makes a list of state sections file (contains each var per state section per month per year) throws it into a datlist and binds them into var 3
+#Next, the closest station to each unique tree plot is kept and the others are removed (each closest station and all its vars are placed into a datalist and bound togeter in var 4)
+#FIA_tree_coord is uploaded (contains all FIA trees (non-unique)per state per year) and merged with var 4 by the tree LAT/LON
+#var 5 conains all of FIA_full with V1x/y removed
+
+
+
+
+
+years<-c("2016","2017","2018")
+month<-c(1:12)
+for(i in 1:length(years)){
+  for(y in 1:length(month)){
+    var6<-list.files(path=paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_state/",month[y],"",sep=""),
+                     pattern=paste("_",years[i],".csv",sep=""))
+    datalist3<-list()
+    for(k in 1:length(var6)){
+      var7<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_state/",month[y],"/",var6[k],"",sep=""))
+      var7<-var7[,c(2:35)]
+      datalist3[[k]]<-var7
+    }
+    var8<-do.call(bind_rows,datalist3)
+    state_codes<-import("C:/Users/Swenson/Documents/R/Denise/Midwest_states_data/species_codes.csv")
+    var8<-merge(var8,state_codes)
+    setwd(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_year/",years[i],"",sep=""))
+    write.csv(var8,paste("All_var_matched_",month[y],"_",years[i],".csv",sep=""))
+  }
+}
+
+#created a list of var5 from the last section of code(All FIA trees per state per year matched with all vars per month) per year, imports them
+#removes v1(I dont know why these columns keep being created),throws them into a datalist, and bind them together.
+# This creates files with all FIA trees, in all the states, for each year matched with all the vars per month
+#The common and scientific names of each species is also added to these files
+
+
+
+years<-c("2016","2017","2018")
+for(i in 1:length(years)){
+  var9<-list.files(path=paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_year/",years[i],"",sep=""),
+                   pattern=".csv")
+  datalist4<-list()
+  for(k in 1:length(var9)){
+    var10<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_year/",years[i],"/",var9[k],"",sep=""))
+    datalist4[[k]]<-var10
+  }
+  var11<-do.call(bind_rows,datalist4)
+  var11<-var11[,c(2:35)]
+  setwd("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_year_all_month")
+  write.csv(var11,paste("All_var_matched_",years[i],".csv",sep=""))
+}
+
+#Listed var9 (all the vars and states per year), imported these files, threw them into a datalist, and bounded them all together
+#This created three files with all the vars from each month for each state per year. YAY!
+#This includes trees of all STATUSCD (0:no status,1:live trees,2:dead trees,3:removed trees)
+
+
+
+#new code
+pacman::p_load(pacman, caret, lars, tidyverse, rio)
+
+years<-c("2016","2017","2018")
+month<-c(1:12)
+library(labdsv)
+for(i in 1:length(years)){
+  for(y in 1:length(month)){
+    var12<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Matched_station/Per_year/",years[i],"/All_var_matched_",month[y],"_",years[i],".csv",sep=""))
+    var12$PLOT<-paste(var12$STATECD,var12$PLOT,sep="_")
+    var12<-var12[var12$STATUSCD==1,]
+    colnames(var12)[colnames(var12)=="PLOT"]<-"STATECD_PLOT"
+    table1<-table(var12$"Scientific Name",var12$"STATECD_PLOT")
+    table1<-as.data.frame(table1)
+    colnames(table1)<-c("Scientific Name","STATECD_PLOT","Freq")
+    table1<-table1[,c(2,1,3)]
+    var13<-matrify(table1)
+    new_col<-as.data.frame(unique(var12$STATECD_PLOT))
+    colnames(new_col)<-"STATECD_PLOT"
+    var14<-cbind(new_col,var13)
+    var12<-var12[,c(3:7,12:35)]
+    var12<-unique(var12)
+    var15<-merge(var14,var12)
+    setwd(paste("C:/Users/Swenson/Documents/R/Denise/CDM/Per_month/",years[i],"",sep=""))
+    write.csv(var15,paste("CDM_",month[y],"_",years[i],".csv",sep=""))
+  }
+}
+#To create a community data matrix (CDM), each per year file is uploaded (need files that do not include all months because it causes problems when creating the CDM).
+#The PLOT col is then combined with the STATECD col to distinguish between plots with the same ID in different states once the data is put into a CDM. The col name is also changed to reflect this.
+#Next, a table is created to make a count of the number of times each species (scientific name) is found in each STATECD_PLOT. This is then turned into a dataframe to be more "useful", and the colnames are updated.
+#Next, the cols are ordered to match the structure needed to fun the function 'matrify' (where the first column is the sample ID, the second column is the taxon ID, and the third sample is the abundance of that taxon in that sample,RDocumentation)
+#Next, matrify is used to create a CDM. In order to relate var13 to the other variables, all the unique STATECD_PLOT variables from table1 (or var12) are put into there own data frame and combined with var13 creating var14.
+#Next, we need to pull out all the variables that do not change within each plot. This removes V1, SPCD, STATUSCD, SPGRPCD, DIA, HT, common name, and scientific name.
+#Next, only unique rows in var12 are kept. Now the number of rows in var12 and var14 should match. 
+#Next, var12 and var14 are combined to create one CDM.
+
+
+
+
+years<-c("2016","2017","2018")
+for(i in 1:length(years)){
+  var16<-list.files(path=paste("C:/Users/Swenson/Documents/R/Denise/CDM/Per_month/",years[i],"",sep=""),
+                    pattern=".csv")
+  datalist5<-list()
+  for(k in 1:length(var16)){
+    var17<-import(paste("C:/Users/Swenson/Documents/R/Denise/CDM/Per_month/",years[i],"/",var16[k],"",sep=""))
+    datalist5[[k]]<-var17
+  }
+  var18<-do.call(bind_rows,datalist5)
+  var18<-var18[,c(2:84)]
+  setwd("C:/Users/Swenson/Documents/R/Denise/CDM/Per_year")
+  write.csv(var18,paste("CDM_",years[i],".csv",sep=""))
+}
+
+#To create a CDM for one year with all the data from each month, CDM per month per year is listed, imported, and thrown into a datalist.
+#This data is then bound together and the variable V1 is removed.
