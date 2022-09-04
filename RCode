@@ -96,6 +96,7 @@ for(i in 1:length(years)){
     }
   }
 }
+# Open Source Options's Youtube video on "R - Open NetCDF file and get data" was used to complete this section: https://www.youtube.com/watch?v=DvfTZSJLRfw.
 
 #To turn the TERRA clim ncdf files into csv files, the file name is entered and the function ncvar_open is used to view the types of data contained in the files (creates a connection to the file without opening it)
 #print (var) is used to see the number of variables in each file (1) and the dimensions of that variable (lat, Lon, time). 
@@ -213,10 +214,9 @@ for(i in 1:length(Clim_states)){
 #You have now determined which station is closest based off the May aet split state TERRA files :)
 
 
-years<-c("2016","2017")
-Clim_states<-c("RI","MD_1","MD_2")
-#years<-c("2016", "2017","2018")
-#Clim_states<-c("CT","DE","RI","MA","MD_1","MD_2","IA_1","IA_2","IA_3","IA_4","IA_5","IA_6","IA_7","IA_8","IA_9","IA_10","IA_11","IA_12","IA_13","IA_14","IA_15","IA_16","IN_1","IN_2","IN_3","IN_4","IN_5","IN_6","IN_7","IN_8","IN_9","IN_10","IN_11","IN_12","IN_13","IN_14","IN_15","IN_16","IL_1","IL_2","IL_3","IL_4","IL_5","IL_6","IL_7","IL_8","IL_9","IL_10","IL_11","IL_12","IL_13","IL_14","IL_15","IL_16","ME_1","ME_2","ME_3","ME_4","ME_5","ME_6","ME_7","ME_8","ME_9","ME_10","ME_11","ME_12","ME_13","ME_14","ME_15","ME_16","ME_17","ME_18","ME_19","ME_20","ME_21","ME_22","ME_23","ME_24","ME_25","ME_26","ME_27","ME_28","ME_29","ME_30","ME_31","ME_32","NH_1","NH_2","NH_3","NH_4","NH_5","NH_6","NH_7","NH_8","NH_9","NH_10","NH_11","NH_12","NH_13","NH_14","NH_15","NH_16","NJ_1","NJ_2","NJ_3","NJ_4","NJ_5","NJ_6","NJ_7","NJ_8","NJ_9","NJ_10","NJ_11","NJ_12","NJ_13","NJ_14","NJ_15","NJ_16","OH_1","OH_2","OH_3","OH_4","OH_5","OH_6","OH_7","OH_8","OH_9","OH_10","OH_11","OH_12","OH_13","OH_14","OH_15","OH_16","PA_1","PA_2","PA_3","PA_4","PA_5","PA_6","PA_7","PA_8","PA_9","PA_10","PA_11","PA_12","PA_13","PA_14","PA_15","PA_16","VT_1","VT_2","VT_3","VT_4","VT_5","VT_6","VT_7","VT_8","VT_9","VT_10","VT_11","VT_12","VT_13","VT_14","VT_15","VT_16","WV_1","WV_2","WV_3","WV_4","WV_5","WV_6","WV_7","WV_8","WV_9","WV_10","WV_11","WV_12","WV_13","WV_14","WV_15","WV_16","NY_1","NY_2","NY_3","NY_4","NY_5","NY_6","NY_7","NY_8","NY_9","NY_10","NY_11","NY_12","NY_13","NY_14","NY_15","NY_16","MO_1","MO_2","MO_3","MO_4","MO_5","MO_6","MO_7","MO_8","MO_9","MO_10","MO_11","MO_12","MO_13","MO_14","MO_15","MO_16","MI_1","MI_2","MI_3","MI_4","MI_5","MI_6","MI_7","MI_8","MI_9","MI_10","MI_11","MI_12","MI_13","MI_14","MI_15","MI_16","MI_17","MI_18","MI_19","MI_20","MI_21","MI_22","MI_23","MI_24","MI_25","MI_26","MI_27","MI_28","MI_29","MI_30","MI_31","MI_32","WI_1","WI_2","WI_3","WI_4","WI_5","WI_6","WI_7","WI_8","WI_9","WI_10","WI_11","WI_12","WI_13","WI_14","WI_15","WI_16","WI_17","WI_18","WI_19","WI_20","WI_21","WI_22","WI_23","WI_24","WI_25","WI_26","WI_27","WI_28","WI_29","WI_30","WI_31","WI_32","WI_33","WI_34","WI_35","WI_36","WI_37","WI_38","WI_39","WI_40","WI_41","WI_42","WI_43","WI_44","WI_45","WI_46","WI_47","WI_48","WI_49","WI_50","MN_1","MN_2","MN_3","MN_4","MN_5","MN_6","MN_7","MN_8","MN_9","MN_10","MN_11","MN_12","MN_13","MN_14","MN_15","MN_16","MN_17","MN_18","MN_19","MN_20","MN_21","MN_22","MN_23","MN_24","MN_25","MN_26","MN_27","MN_28","MN_29","MN_30","MN_31","MN_32","MN_33","MN_34","MN_35","MN_36","MN_37","MN_38","MN_39","MN_40","MN_41","MN_42","MN_43","MN_44","MN_45","MN_46","MN_47","MN_48","MN_49","MN_50")
+
+years<-c("2016", "2017","2018")
+Clim_states<-c("CT","DE","RI","MA","MD_1","MD_2","IA_1","IA_2","IA_3","IA_4","IA_5","IA_6","IA_7","IA_8","IA_9","IA_10","IA_11","IA_12","IA_13","IA_14","IA_15","IA_16","IN_1","IN_2","IN_3","IN_4","IN_5","IN_6","IN_7","IN_8","IN_9","IN_10","IN_11","IN_12","IN_13","IN_14","IN_15","IN_16","IL_1","IL_2","IL_3","IL_4","IL_5","IL_6","IL_7","IL_8","IL_9","IL_10","IL_11","IL_12","IL_13","IL_14","IL_15","IL_16","ME_1","ME_2","ME_3","ME_4","ME_5","ME_6","ME_7","ME_8","ME_9","ME_10","ME_11","ME_12","ME_13","ME_14","ME_15","ME_16","ME_17","ME_18","ME_19","ME_20","ME_21","ME_22","ME_23","ME_24","ME_25","ME_26","ME_27","ME_28","ME_29","ME_30","ME_31","ME_32","NH_1","NH_2","NH_3","NH_4","NH_5","NH_6","NH_7","NH_8","NH_9","NH_10","NH_11","NH_12","NH_13","NH_14","NH_15","NH_16","NJ_1","NJ_2","NJ_3","NJ_4","NJ_5","NJ_6","NJ_7","NJ_8","NJ_9","NJ_10","NJ_11","NJ_12","NJ_13","NJ_14","NJ_15","NJ_16","OH_1","OH_2","OH_3","OH_4","OH_5","OH_6","OH_7","OH_8","OH_9","OH_10","OH_11","OH_12","OH_13","OH_14","OH_15","OH_16","PA_1","PA_2","PA_3","PA_4","PA_5","PA_6","PA_7","PA_8","PA_9","PA_10","PA_11","PA_12","PA_13","PA_14","PA_15","PA_16","VT_1","VT_2","VT_3","VT_4","VT_5","VT_6","VT_7","VT_8","VT_9","VT_10","VT_11","VT_12","VT_13","VT_14","VT_15","VT_16","WV_1","WV_2","WV_3","WV_4","WV_5","WV_6","WV_7","WV_8","WV_9","WV_10","WV_11","WV_12","WV_13","WV_14","WV_15","WV_16","NY_1","NY_2","NY_3","NY_4","NY_5","NY_6","NY_7","NY_8","NY_9","NY_10","NY_11","NY_12","NY_13","NY_14","NY_15","NY_16","MO_1","MO_2","MO_3","MO_4","MO_5","MO_6","MO_7","MO_8","MO_9","MO_10","MO_11","MO_12","MO_13","MO_14","MO_15","MO_16","MI_1","MI_2","MI_3","MI_4","MI_5","MI_6","MI_7","MI_8","MI_9","MI_10","MI_11","MI_12","MI_13","MI_14","MI_15","MI_16","MI_17","MI_18","MI_19","MI_20","MI_21","MI_22","MI_23","MI_24","MI_25","MI_26","MI_27","MI_28","MI_29","MI_30","MI_31","MI_32","WI_1","WI_2","WI_3","WI_4","WI_5","WI_6","WI_7","WI_8","WI_9","WI_10","WI_11","WI_12","WI_13","WI_14","WI_15","WI_16","WI_17","WI_18","WI_19","WI_20","WI_21","WI_22","WI_23","WI_24","WI_25","WI_26","WI_27","WI_28","WI_29","WI_30","WI_31","WI_32","WI_33","WI_34","WI_35","WI_36","WI_37","WI_38","WI_39","WI_40","WI_41","WI_42","WI_43","WI_44","WI_45","WI_46","WI_47","WI_48","WI_49","WI_50","MN_1","MN_2","MN_3","MN_4","MN_5","MN_6","MN_7","MN_8","MN_9","MN_10","MN_11","MN_12","MN_13","MN_14","MN_15","MN_16","MN_17","MN_18","MN_19","MN_20","MN_21","MN_22","MN_23","MN_24","MN_25","MN_26","MN_27","MN_28","MN_29","MN_30","MN_31","MN_32","MN_33","MN_34","MN_35","MN_36","MN_37","MN_38","MN_39","MN_40","MN_41","MN_42","MN_43","MN_44","MN_45","MN_46","MN_47","MN_48","MN_49","MN_50")
 for(i in 1:length(years)){
   for(j in 1:length(Clim_states)){
     Uni_FIA_Clim<-import(paste("C:/Users/Swenson/Documents/R/Denise/Uni_FIA_Year_Var/Uni_FIA_all_states_aet_v2/",years[i],"/Uni_FIA_",Clim_states[j],"_aet_",years[i],"_v2.csv",sep=""))
@@ -356,7 +356,6 @@ for(i in 1:length(years)){
 
 
 
-#new code
 pacman::p_load(pacman, caret, lars, tidyverse, rio)
 
 years<-c("2016","2017","2018")
@@ -405,10 +404,110 @@ for(i in 1:length(years)){
     datalist5[[k]]<-var17
   }
   var18<-do.call(bind_rows,datalist5)
-  var18<-var18[,c(2:84)]
   setwd("C:/Users/Swenson/Documents/R/Denise/CDM/Per_year")
   write.csv(var18,paste("CDM_",years[i],".csv",sep=""))
 }
 
 #To create a CDM for one year with all the data from each month, CDM per month per year is listed, imported, and thrown into a datalist.
-#This data is then bound together and the variable V1 is removed.
+#This data is then bound together.
+
+
+
+
+CDM_2016<-import("C:/Users/Swenson/Documents/R/Denise/CDM/Per_year/CDM_2016.csv")
+CDM_2016<-CDM_2016[,c(3:52,95,53:94)]
+setwd("C:/Users/Swenson/Documents/R/Denise/CDM/Per_year/Reorganized_data")
+write.csv(CDM_2016,"CDM_2016_V2.csv")
+
+years_17_18<-c("2017","2018")
+for(i in 1:length(years_17_18)){
+  CDM<-import(paste("C:/Users/Swenson/Documents/R/Denise/CDM/Per_year/CDM_",years_17_18[i],".csv",sep=""))
+  Albizia_julibrissin<-matrix(NA,ncol=1,nrow=nrow(CDM))
+  colnames(Albizia_julibrissin)<-"Albizia julibrissin"
+  CDM<-cbind(CDM,Albizia_julibrissin)
+  CDM<-CDM[,c(3:9,95,10:94)]
+  setwd("C:/Users/Swenson/Documents/R/Denise/CDM/Per_year/Reorganized_data")
+  write.csv(CDM,paste("CDM_",years_17_18[i],"_V2.csv",sep=""))
+}
+
+#This section adds a "Albizia julibrissin" column to CDM 2017 and 2018 so that there is the same number of columns in these years as in 2016. One more tree species
+#sampled in 2016 that was not found in 2017-2018. Additionally, the V1 columns are removed from each CDM file. 
+
+
+
+
+years<-c("2016","2017","2018")
+for(i in 1:length(years)){
+  CDM_SA<-import(paste("C:/Users/Swenson/Documents/R/Denise/GIS/Feature_Class_Tables/CDM_",years[i],"_Proj_Clip_SA_Join_Table.txt",sep=""))
+  CDM_SA<-CDM_SA[,c(3,4,6:98,100,101,107:111,116,117)]
+  setwd("C:/Users/Swenson/Documents/R/Denise/GIS/Reduced_Join_Tables/CDM/Per_year")
+  write.csv(CDM_SA,paste("CDM_",years[i],"_Proj_Clip_SA_Join_Table_Reduced.csv",sep=""))
+}
+
+#Reducing the size of CDM and USFS Surveyed Area data created in Arcmap
+
+
+
+
+years<-c("2016","2017","2018")
+for(i in 1:length(years)){
+  CDM_DA<-import(paste("C:/Users/Swenson/Documents/R/Denise/GIS/Feature_Class_Tables/CDM_",years[i],"_Proj_Clip_DA_Join_Table.txt",sep=""))
+  CDM_DA<-CDM_DA[,c(3,4,6:98,104:117,119,120,125,127:135,138,139)]
+  setwd("C:/Users/Swenson/Documents/R/Denise/GIS/Reduced_Join_Tables/CDM/Per_year")
+  write.csv(CDM_DA,paste("CDM_",years[i],"_Proj_Clip_DA_Join_Table_Reduced.csv",sep=""))
+}
+
+#Reducing the size of CDM and USFS damaged Area data created in Arcmap
+
+
+
+years<-c("2016","2017","2018")
+file_type<-c("SA","DA")
+for(i in 1:length(years)){
+  for(j in 1:length(file_type)){
+    Dpts<-import(paste("C:/Users/Swenson/Documents/R/Denise/GIS/Feature_Class_Tables/Dpts_",years[i],"_Clip_",file_type[j],"_Join_Table.txt",sep=""))
+    Dpts<-Dpts[,c(3,4,10,12:23,26:29,31,34:35)]
+    setwd("C:/Users/Swenson/Documents/R/Denise/GIS/Reduced_Join_Tables/Dpts/Per_year")
+    write.csv(Dpts,paste("Dpts_",years[i],"_Clip_",file_type[j],"_Join_Table_Reduced.csv",sep=""))
+  }
+}
+
+#Reducing the size of USFS Damaged Points and USFS Surveyed/Damaged area data created in Arcmap 
+
+
+
+
+file_type<-c("SA","DA")
+for(i in 1:length(file_type)){
+  var19<-list.files(path=paste("C:/Users/Swenson/Documents/R/Denise/GIS/Reduced_Join_Tables/CDM/Per_year"),
+                   pattern=paste("",file_type[i],"_Join_Table_Reduced.csv",sep=""))
+  datalist5<-list()
+  for(j in 1:length(var19)){
+    var20<-import(paste("C:/Users/Swenson/Documents/R/Denise/GIS/Reduced_Join_Tables/CDM/Per_year/",var19[j],"",sep=""))
+    datalist5[[j]]<-var20
+  }
+  var21<-do.call(bind_rows,datalist5)
+  setwd("C:/Users/Swenson/Documents/R/Denise/GIS/Reduced_Join_Tables/CDM/All_years")
+  write.csv(var21,paste("CDM_Proj_Clip_",file_type[i],"_Join_Table_Reduced.csv",sep=""))
+}
+
+#Creating CDM_SA and CDM_DA all years files
+
+
+
+
+file_type<-c("SA","DA")
+for(i in 1:length(file_type)){
+  var22<-list.files(path=paste("C:/Users/Swenson/Documents/R/Denise/GIS/Reduced_Join_Tables/Dpts/Per_year"),
+                    pattern=paste("",file_type[i],"_Join_Table_Reduced.csv",sep=""))
+  datalist6<-list()
+  for(j in 1:length(var22)){
+    var23<-import(paste("C:/Users/Swenson/Documents/R/Denise/GIS/Reduced_Join_Tables/Dpts/Per_year/",var22[j],"",sep=""))
+    datalist6[[j]]<-var23
+  }
+  var24<-do.call(bind_rows,datalist6)
+  setwd("C:/Users/Swenson/Documents/R/Denise/GIS/Reduced_Join_Tables/Dpts/All_years")
+  write.csv(var24,paste("DPts_Clip_",file_type[i],"_Join_Table_Reduced.csv",sep=""))
+}
+
+#Creating Dpts_SA and Dpts_DA all years files
