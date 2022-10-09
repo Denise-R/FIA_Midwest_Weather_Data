@@ -1,6 +1,8 @@
 ---
 __Title: "FIA Midwest Climate Data"__
+
 __Author: "Denise Rauschendorfer"__
+
 __Date: "1/31/2022"__
 
 This markdown file documents how data from three different publicly available databases ([FIA DataMart](https://apps.fs.usda.gov/fia/datamart/CSV/datamart_csv.html), [Climatology Lab](https://climate.northwestknowledge.net/TERRACLIMATE/index_directDownloads.php), and [USFS Insect & Disease Detection Survey](https://www.fs.usda.gov/foresthealth/applied-sciences/mapping-reporting/detection-surveys.shtml)) can be combined into one easily understandable dataframe. The final dataframe produced will match every tree recorded by the USFS in the northeastern portion of the United States with the climatology data recorded by the closest weather station to each individual tree. This will result in 14 different climatology variables per tree. Using ArcGIS 10.8.1 to extract the necessary Insect & Disease Detection Survey shapefiles provided by the USFS, each tree can then be related to the different types of insect and disease damage found nearby.
